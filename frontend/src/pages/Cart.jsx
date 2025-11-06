@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import CartCard from "../components/CartCard";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { toast } from "sonner";
 
 const Cart = () => {
   const [cartItems, setCartItems] = useState([]);
@@ -25,59 +26,53 @@ const Cart = () => {
     try {
       const response = await axios.get(
         `${process.env.REACT_APP_BASE_URL}/api/cart/${user.id}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      console.log("Cart response:", response.data);
       setCartItems(response.data.items || []);
       setTotal(response.data.total || 0);
     } catch (error) {
       console.error("Error fetching cart:", error);
+      toast.error("Failed to fetch cart items", { className: "bg-white text-hero" });
     } finally {
       setLoading(false);
     }
   };
 
-const onUpdateQty = async (cartItemId, newQty) => {
-  if (newQty < 1) return;
-  try {
-    const res = await axios.put(
-      `${process.env.REACT_APP_BASE_URL}/api/cart/${user.id}`,
-      { cartItemId, qty: newQty },
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
+  const onUpdateQty = async (cartItemId, newQty) => {
+    if (newQty < 1) return;
+    try {
+      const res = await axios.put(
+        `${process.env.REACT_APP_BASE_URL}/api/cart/${user.id}`,
+        { cartItemId, qty: newQty },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
 
-    setCartItems((prev) =>
-      prev.map((item) =>
-        item.id === cartItemId
-          ? { ...item, qty: res.data.qty, subtotal: res.data.subtotal }
-          : item
-      )
-    );
+      setCartItems((prev) =>
+        prev.map((item) =>
+          item.id === cartItemId
+            ? { ...item, qty: res.data.qty, subtotal: res.data.subtotal }
+            : item
+        )
+      );
 
-    setTotal((prev) =>
-      cartItems.reduce((acc, it) => acc + (it.price * it.qty), 0)
-    );
-  } catch (err) {
-    console.error("Error updating quantity:", err);
-  }
-};
+      setTotal(cartItems.reduce((acc, it) => acc + it.price * it.qty, 0));
 
+      toast.success("Quantity updated!", { className: "bg-white text-hero" });
+    } catch (err) {
+      console.error("Error updating quantity:", err);
+      toast.error("Failed to update quantity", { className: "bg-white text-hero" });
+    }
+  };
 
-
-  // Remove item from cart (by cart _id)
+  // Remove item from cart
   const handleRemove = async (cartItemId) => {
     try {
       await axios.delete(
         `${process.env.REACT_APP_BASE_URL}/api/cart/${user.id}/${cartItemId}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
 
-      // Update local state
       setCartItems((prev) => {
         const updated = prev.filter((item) => item.id !== cartItemId);
         const updatedTotal = updated.reduce(
@@ -87,12 +82,14 @@ const onUpdateQty = async (cartItemId, newQty) => {
         setTotal(updatedTotal);
         return updated;
       });
+
+      toast.success("Item removed from cart!", { className: "bg-white text-hero" });
     } catch (error) {
       console.error("Error removing item:", error);
+      toast.error("Failed to remove item", { className: "bg-white text-hero" });
     }
   };
 
-  // UI Loading State
   if (loading) {
     return (
       <div className="flex items-center justify-center h-screen text-white">
@@ -101,7 +98,6 @@ const onUpdateQty = async (cartItemId, newQty) => {
     );
   }
 
-  // Empty Cart State
   if (cartItems.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center h-screen text-white text-center">
@@ -116,14 +112,18 @@ const onUpdateQty = async (cartItemId, newQty) => {
     );
   }
 
-  // Main Cart UI
   return (
     <div className="min-h-screen text-white px-4 py-8 flex flex-col items-center">
       <h1 className="text-3xl font-bold mb-6 text-hero">Your Cart</h1>
 
       <div className="w-full max-w-3xl space-y-4">
         {cartItems.map((item) => (
-          <CartCard key={item.id} item={item} onRemove={handleRemove} onUpdateQty={onUpdateQty} />
+          <CartCard
+            key={item.id}
+            item={item}
+            onRemove={handleRemove}
+            onUpdateQty={onUpdateQty}
+          />
         ))}
       </div>
 

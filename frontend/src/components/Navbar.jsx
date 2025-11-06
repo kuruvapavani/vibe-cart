@@ -13,7 +13,7 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="flex justify-between items-center px-6 py-4 bg-hero text-white shadow-md">
+    <nav className="fixed top-0 left-0 w-full flex justify-between items-center px-6 py-4 mb-24 bg-hero text-white shadow-md z-50">
       <h1
         className="text-2xl font-itim font-bold cursor-pointer"
         onClick={() => navigate("/")}

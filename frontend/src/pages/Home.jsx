@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import ProductCard from "../components/ProductCard";
 import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 const Home = () => {
   const [products, setProducts] = useState([]);
@@ -9,19 +10,18 @@ const Home = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const res = await fetch(
-          `${process.env.REACT_APP_BASE_URL}/api/products`
-        );
+        const res = await fetch(`${process.env.REACT_APP_BASE_URL}/api/products`);
         const data = await res.json();
         setProducts(data);
       } catch (err) {
         console.error("Error fetching products:", err);
+        toast.error("Failed to load products", { className: "bg-white text-hero" });
       }
     };
     fetchProducts();
   }, []);
 
-  //Add to Cart function
+  // Add to Cart function
   const handleAddToCart = async (productId) => {
     const user = JSON.parse(localStorage.getItem("user"));
     if (!user) {
@@ -45,13 +45,13 @@ const Home = () => {
 
       const data = await res.json();
       if (res.ok) {
-        alert("Added to cart successfully!");
+        toast.success("Added to cart successfully!", { className: "bg-white text-hero" });
       } else {
-        alert(data.error || "Failed to add to cart");
+        toast.error(data.error || "Failed to add to cart", { className: "bg-white text-hero" });
       }
     } catch (err) {
       console.error("Error adding to cart:", err);
-      alert("Something went wrong. Please try again.");
+      toast.error("Something went wrong. Please try again.", { className: "bg-white text-hero" });
     }
   };
 

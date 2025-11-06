@@ -1,12 +1,12 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { toast } from "sonner"; // ✅ import Sonner
 
 const Checkout = () => {
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem("user"));
   const token = user?.token;
-  
 
   const [address, setAddress] = useState({
     name: "",
@@ -24,7 +24,9 @@ const Checkout = () => {
 
   const handleCheckout = async () => {
     if (!user?.id || !token) {
-      alert("Please login to proceed.");
+      toast.error("Please login to proceed.", {
+        className: "bg-white text-hero",
+      });
       return;
     }
 
@@ -46,13 +48,20 @@ const Checkout = () => {
       );
 
       if (res.data) {
-        alert("Order placed successfully!");
+        toast.success("Order placed successfully!", {
+          className: "bg-white text-hero",
+        });
         localStorage.removeItem("cart");
         navigate("/");
       }
     } catch (err) {
       console.error("Checkout error:", err);
-      alert(err.response?.data?.message || "Checkout failed, please try again.");
+      toast.error(
+        err.response?.data?.message || "Checkout failed, please try again.",
+        {
+          className: "bg-white text-hero",
+        }
+      );
     } finally {
       setLoading(false);
     }
@@ -61,57 +70,24 @@ const Checkout = () => {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-6">
       <div className="bg-white/10 border border-white/20 backdrop-blur-md rounded-2xl p-6 w-full max-w-md">
-        <h2 className="text-2xl font-semibold mb-4 text-center text-hero">Checkout</h2>
+        <h2 className="text-2xl font-semibold mb-4 text-center text-hero">
+          Checkout
+        </h2>
 
         <div className="space-y-3">
-          <input
-            type="text"
-            name="name"
-            placeholder="Full Name"
-            value={address.name}
-            onChange={handleChange}
-            className="w-full p-2 rounded-md bg-transparent border border-white/20"
-          />
-          <input
-            type="text"
-            name="street"
-            placeholder="Street Address"
-            value={address.street}
-            onChange={handleChange}
-            className="w-full p-2 rounded-md bg-transparent border border-white/20"
-          />
-          <input
-            type="text"
-            name="city"
-            placeholder="City"
-            value={address.city}
-            onChange={handleChange}
-            className="w-full p-2 rounded-md bg-transparent border border-white/20"
-          />
-          <input
-            type="text"
-            name="state"
-            placeholder="State"
-            value={address.state}
-            onChange={handleChange}
-            className="w-full p-2 rounded-md bg-transparent border border-white/20"
-          />
-          <input
-            type="text"
-            name="postalCode"
-            placeholder="Postal Code"
-            value={address.postalCode}
-            onChange={handleChange}
-            className="w-full p-2 rounded-md bg-transparent border border-white/20"
-          />
-          <input
-            type="text"
-            name="phone"
-            placeholder="Phone Number"
-            value={address.phone}
-            onChange={handleChange}
-            className="w-full p-2 rounded-md bg-transparent border border-white/20"
-          />
+          {["name", "street", "city", "state", "postalCode", "phone"].map(
+            (field) => (
+              <input
+                key={field}
+                type="text"
+                name={field}
+                placeholder={field.charAt(0).toUpperCase() + field.slice(1)}
+                value={address[field]}
+                onChange={handleChange}
+                className="w-full p-2 rounded-md bg-transparent border border-white/20"
+              />
+            )
+          )}
         </div>
 
         <button
