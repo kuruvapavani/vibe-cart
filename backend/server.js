@@ -3,7 +3,7 @@ import dotenv from "dotenv";
 import cors from "cors";
 import connectDB from "./config/db.js";
 import testRoute from "./routes/testRoute.js";
-
+import productRoutes from "./routes/productRoutes.js";
 dotenv.config();
 const app = express();
 
@@ -13,6 +13,7 @@ app.use(express.json());
 
 // Routes
 app.use("/api/test", testRoute);
+app.use("/api/products",productRoutes);
 
 // DB connection
 connectDB();
