@@ -19,7 +19,7 @@ const Register = () => {
     e.preventDefault();
     setError("");
     try {
-      const { data } = await axios.post("/api/users/register", formData);
+      const { data } = await axios.post(`${process.env.REACT_APP_BASE_URL}/api/users/register`, formData);
       localStorage.setItem("user", JSON.stringify(data));
       navigate("/");
     } catch (err) {
