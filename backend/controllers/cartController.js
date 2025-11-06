@@ -15,6 +15,7 @@ export const getCartItems = async (req, res) => {
         productId: item.productId._id,
         name: item.productId.name,
         price: item.productId.price,
+        image: item.productId.image,
         qty: item.qty,
         subtotal,
       };
@@ -40,6 +41,36 @@ export const addToCart = async (req, res) => {
     res.status(201).json(cartItem);
   } catch (err) {
     res.status(500).json({ error: "Failed to add item to cart" });
+  }
+};
+
+export const updateCartQty = async (req, res) => {
+  const { userId } = req.params;
+  const { cartItemId, qty } = req.body;
+
+  try {
+    const cartItem = await Cart.findOne({ _id: cartItemId, userId });
+
+    if (!cartItem) {
+      return res.status(404).json({ error: "Cart item not found" });
+    }
+
+    // Prevent negative quantities
+    cartItem.qty = Math.max(1, qty);
+    await cartItem.save();
+
+    const product = await Product.findById(cartItem.productId);
+    const subtotal = product.price * cartItem.qty;
+
+    res.json({
+      message: "Quantity updated successfully",
+      id: cartItem._id,
+      qty: cartItem.qty,
+      subtotal,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to update cart quantity" });
   }
 };
 
